@@ -1,30 +1,30 @@
 # Excel Export Consumer (Rust)
 
-## Giới thiệu
+## Introduction
 
-`excel-export-consumer_Rust` là một service tiêu thụ message từ Kafka, thực hiện xuất dữ liệu ra file Excel, lưu trữ file, cập nhật trạng thái vào database và gửi thông báo qua HTTP API. Service này hỗ trợ logging, metrics Prometheus, cấu hình linh hoạt qua file `.env` và dễ dàng mở rộng.
+`excel-export-consumer_Rust` is a service that consumes messages from Kafka, exports data to Excel files, stores the files, updates status in the database, and sends notifications via HTTP API. This service supports logging, Prometheus metrics, flexible configuration via `.env`, and is easy to extend.
 
-## Kiến trúc tổng quan
+## Architecture Overview
 
-- **Kafka Consumer**: Lắng nghe các yêu cầu xuất Excel từ topic Kafka.
-- **Database (PostgreSQL)**: Lưu trữ thông tin trạng thái xuất file.
-- **File Exporter**: Xuất dữ liệu ra file Excel và lưu vào thư mục cấu hình.
-- **Notifier**: Gửi thông báo (thành công/thất bại) tới API ngoài (ASP.NET hoặc service khác).
-- **Prometheus Metrics**: Expose metrics cho Prometheus scrape.
-- **Logging**: Ghi log chi tiết vào file theo ngày.
+- **Kafka Consumer**: Listens for Excel export requests from a Kafka topic.
+- **Database (PostgreSQL)**: Stores export status information.
+- **File Exporter**: Exports data to Excel files and saves them to a configured directory.
+- **Notifier**: Sends notifications (success/failure) to an external API (such as ASP.NET or other services).
+- **Prometheus Metrics**: Exposes metrics for Prometheus scraping.
+- **Logging**: Writes detailed logs to daily log files.
 
-## Sơ đồ luồng xử lý
+## Processing Flow
 
-1. Nhận message từ Kafka.
-2. Lấy dữ liệu từ database (nếu cần).
-3. Xuất file Excel và lưu vào thư mục cấu hình.
-4. Cập nhật trạng thái vào database.
-5. Gửi thông báo qua HTTP API.
-6. Ghi log và expose metrics.
+1. Receive messages from Kafka.
+2. Fetch data from the database (if needed).
+3. Export Excel file and save to the configured directory.
+4. Update status in the database.
+5. Send notification via HTTP API.
+6. Write logs and expose metrics.
 
-## Cấu hình
+## Configuration
 
-Tạo file `.env` ở thư mục gốc với nội dung mẫu:
+Create a `.env` file in the project root with the following sample content:
 
 ```env
 KAFKA_BROKERS=localhost:9092
@@ -35,70 +35,70 @@ EXCEL_EXPORT_PATH=/app/exports
 METRICS_LISTEN_ADDRESS=0.0.0.0:9000
 ```
 
-**Chú thích:**
-- `KAFKA_BROKERS`: Địa chỉ Kafka cluster.
-- `KAFKA_TOPIC`: Tên topic nhận yêu cầu xuất Excel.
-- `DATABASE_URL`: Chuỗi kết nối PostgreSQL.
-- `NOTIFICATION_SERVICE_URL`: API nhận thông báo trạng thái.
-- `EXCEL_EXPORT_PATH`: Thư mục lưu file Excel.
-- `METRICS_LISTEN_ADDRESS`: Địa chỉ expose metrics cho Prometheus.
+**Notes:**
+- `KAFKA_BROKERS`: Kafka cluster address.
+- `KAFKA_TOPIC`: Topic name for Excel export requests.
+- `DATABASE_URL`: PostgreSQL connection string.
+- `NOTIFICATION_SERVICE_URL`: API for receiving export status notifications.
+- `EXCEL_EXPORT_PATH`: Directory to store exported Excel files.
+- `METRICS_LISTEN_ADDRESS`: Address to expose Prometheus metrics.
 
-## Hướng dẫn chạy dự án
+## How to Run
 
-### 1. Cài đặt Rust và Cargo
+### 1. Install Rust and Cargo
 
 - [Rust Install Guide](https://www.rust-lang.org/tools/install)
 
-### 2. Cài đặt các dependency
+### 2. Install dependencies
 
 ```bash
 cargo build
 ```
 
-### 3. Thiết lập các service phụ trợ
+### 3. Set up supporting services
 
-- Đảm bảo Kafka, PostgreSQL, Notification API đã chạy và đúng cấu hình trong `.env`.
-- Tạo thư mục lưu file Excel (nếu chưa có) và cấp quyền ghi.
+- Ensure Kafka, PostgreSQL, and Notification API are running and match the configuration in `.env`.
+- Create the export directory (if not exists) and grant write permissions.
 
-### 4. Chạy service
+### 4. Run the service
 
 ```bash
 cargo run --release
 ```
 
-### 5. Kiểm tra log và metrics
+### 5. Check logs and metrics
 
-- Log: Thư mục `logs/consumer.log` (log theo ngày).
-- Metrics: Truy cập `http://<host>:9000/metrics` để xem Prometheus metrics.
+- Logs: `logs/consumer.log` directory (daily logs).
+- Metrics: Visit `http://<host>:9000/metrics` for Prometheus metrics.
 
 ## Docker
 
-Dự án có thể build và chạy bằng Docker. Ví dụ:
+You can build and run the project with Docker. Example:
 
 ```bash
 docker build -t excel-export-consumer .
 docker run --env-file .env -v /path/to/exports:/app/exports excel-export-consumer
 ```
 
-## Cấu trúc thư mục
+## Project Structure
 
 ```
 src/
-  config.rs           // Đọc và quản lý cấu hình
-  kafka_consumer.rs   // Lắng nghe và xử lý message Kafka
-  models.rs           // Định nghĩa model dữ liệu
+  config.rs           // Configuration management
+  kafka_consumer.rs   // Kafka message listening and processing
+  models.rs           // Data models
   services/
-    db_store.rs       // Tương tác database
-    export_service.rs // Logic xuất file Excel
-    file_exporter.rs  // Lưu file Excel
-    notifier.rs       // Gửi thông báo HTTP
-main.rs               // Điểm khởi động ứng dụng
+    db_store.rs       // Database interaction
+    export_service.rs // Excel export logic
+    file_exporter.rs  // Excel file storage
+    notifier.rs       // HTTP notification sender
+main.rs               // Application entry point
 ```
 
-## Đóng góp
+## Contribution
 
-- Fork, tạo branch mới, gửi pull request.
-- Vui lòng viết log, comment rõ ràng và tuân thủ chuẩn Rust.
+- Fork, create a new branch, and submit a pull request.
+- Please write clear logs, comments, and follow Rust best practices.
 
 ## License
 
